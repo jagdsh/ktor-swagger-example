@@ -1,0 +1,29 @@
+# idea ignores
+.idea/
+*.iml
+out/
+.DS_Store
+
+# vscode ignores
+.vscode/
+.settings/
+.project
+.classpath
+bin/
+lib/
+
+# gradle ignores
+.gradle/
+build/
+
+# cybersource ignores
+log/
+
+developer.properties
+.envrc
+
+#
+src/test/resources/*_qa.jks
+gdpkeystore.jks
+gdpkeystore_qa.jks
+paymentsservicestore_qa.jks

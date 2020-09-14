@@ -5,7 +5,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.71")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.11")
     }
 }
 
@@ -13,7 +13,7 @@ val jUnitVersion = "5.3.2"
 val mockKVersion = "1.9.3"
 
 plugins {
-    kotlin("jvm") version "1.3.71"
+    kotlin("jvm") version "1.3.11"
     `java-library`
     id("com.github.johnrengelman.shadow") version "5.0.0"
     application
@@ -38,18 +38,16 @@ tasks {
 
 repositories {
     mavenLocal()
-    maven {
-        url = uri("http://maven.codelibs.org")
-    }
+    maven { setUrl("https://dl.bintray.com/kotlin/ktor") }
     jcenter()
 }
 
 fun DependencyHandler.ktor(name: String) =
-        create(group = "io.ktor", name = name, version = "1.3.1")
+        create(group = "io.ktor", name = name, version = "1.1.1")
 
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
-    implementation(kotlin("reflect"))
+    implementation(kotlin("stdlib-jdk8", property("kotlin.version") as String))
+    implementation(kotlin("reflect", property("kotlin.version") as String))
     implementation(ktor("ktor-server-netty"))
     implementation(ktor("ktor-locations"))
     implementation(ktor("ktor-server-core"))
@@ -58,8 +56,8 @@ dependencies {
     implementation("de.nielsfalk.ktor:ktor-swagger:0.5.0")
 
     /* Junit Platform */
-    testImplementation(kotlin("test", "1.3.71"))
-    testImplementation(kotlin("test-junit", "1.3.71"))
+    testImplementation(kotlin("test", property("kotlin.version") as String))
+    testImplementation(kotlin("test-junit", property("kotlin.version") as String))
     testImplementation(ktor("ktor-server-test-host"))
     testImplementation(ktor("ktor-gson"))
     testImplementation("com.winterbe:expekt:0.5.0")
@@ -72,5 +70,5 @@ dependencies {
 }
 
 application {
-    mainClassName = "example.JsonApplicationKt"
+    mainClassName = "example.PetsApplicationKt"
 }

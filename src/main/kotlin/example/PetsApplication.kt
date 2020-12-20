@@ -43,6 +43,7 @@ import io.ktor.server.netty.Netty
 import io.ktor.util.StringValues
 import io.ktor.util.pipeline.PipelineContext
 import io.ktor.util.toMap
+import org.slf4j.event.Level
 
 data class PetModel(val id: Int?, val name: String) {
     companion object {
@@ -101,6 +102,10 @@ class pet(val id: Int)
 @Location("/pets")
 class pets
 
+@Group("Health check")
+@Location("/live")
+class live
+
 @Group("generic operations")
 @Location("/genericPets")
 class genericPets
@@ -141,11 +146,14 @@ class withQueryParameter
 class QueryParameter(val optionalParameter: String?, val mandatoryParameter: Int)
 
 internal fun run(port: Int, wait: Boolean = true): ApplicationEngine {
+
     println("Launching on port `$port`")
     val server = embeddedServer(Netty, port) {
         install(DefaultHeaders)
         install(Compression)
-        install(CallLogging)
+        install(CallLogging) {
+            level = Level.INFO
+        }
         install(ContentNegotiation) {
             gson {
                 setPrettyPrinting()
@@ -155,13 +163,9 @@ internal fun run(port: Int, wait: Boolean = true): ApplicationEngine {
         install(SwaggerSupport) {
             forwardRoot = true
             val information = Information(
-                version = "0.1",
-                title = "sample api implemented in ktor",
-                description = "This is a sample which combines [ktor](https://github.com/Kotlin/ktor) with [swaggerUi](https://swagger.io/). You find the sources on [github](https://github.com/nielsfalk/ktor-swagger)",
-                contact = Contact(
-                    name = "Niels Falk",
-                    url = "https://nielsfalk.de"
-                )
+                    version = "0.1",
+                    title = "sample api implemented in ktor",
+                    description = "This is a sample which combines [ktor](https://github.com/Kotlin/ktor) with [swaggerUi](https://swagger.io/)."
             )
             swagger = Swagger().apply {
                 info = information
@@ -177,43 +181,46 @@ internal fun run(port: Int, wait: Boolean = true): ApplicationEngine {
             }
         }
         routing {
+            get<live>("health_check".responds(ok<PetsModel>(example("model", "Pong")))){
+                call.respond("Pong")
+            }
             get<pets>("all".responds(ok<PetsModel>(example("model", PetsModel.exampleModel)))) {
                 call.respond(data)
             }
             post<pets, PetModel>(
-                "create"
-                    .description("Save a pet in our wonderful database!")
-                    .examples(
-                        example("rover", PetModel.exampleRover, summary = "Rover is one possible pet."),
-                        example("spike", PetModel.exampleSpike, summary = "Spike is a different posssible pet.")
-                    )
-                    .responds(
-                        created<PetModel>(
-                            example("rover", PetModel.exampleRover),
-                            example("spike", PetModel.exampleSpike)
-                        )
-                    )
+                    "create"
+                            .description("Save a pet in our wonderful database!")
+                            .examples(
+                                    example("rover", PetModel.exampleRover, summary = "Rover is one possible pet."),
+                                    example("spike", PetModel.exampleSpike, summary = "Spike is a different posssible pet.")
+                            )
+                            .responds(
+                                    created<PetModel>(
+                                            example("rover", PetModel.exampleRover),
+                                            example("spike", PetModel.exampleSpike)
+                                    )
+                            )
             ) { _, entity ->
                 call.respond(Created, entity.copy(id = newId()).apply {
                     data.pets.add(this)
                 })
             }
             get<pet>(
-                "find".responds(
-                    ok<PetModel>(),
-                    notFound()
-                )
+                    "find".responds(
+                            ok<PetModel>(),
+                            notFound()
+                    )
             ) { params ->
                 data.pets.find { it.id == params.id }
-                    ?.let {
-                        call.respond(it)
-                    }
+                        ?.let {
+                            call.respond(it)
+                        }
             }
             put<pet, PetModel>(
-                "update".responds(
-                    ok<PetModel>(),
-                    notFound()
-                )
+                    "update".responds(
+                            ok<PetModel>(),
+                            notFound()
+                    )
             ) { params, entity ->
                 if (data.pets.removeIf { it.id == params.id && it.id == entity.id }) {
                     data.pets.add(entity)
@@ -221,22 +228,22 @@ internal fun run(port: Int, wait: Boolean = true): ApplicationEngine {
                 }
             }
             delete<pet>(
-                "delete".responds(
-                    ok<Unit>(),
-                    notFound()
-                )
+                    "delete".responds(
+                            ok<Unit>(),
+                            notFound()
+                    )
             ) { params ->
                 if (data.pets.removeIf { it.id == params.id }) {
                     call.respond(Unit)
                 }
             }
             get<shapes>(
-                "all".responds(
-                    ok("Rectangle")
-                )
+                    "all".responds(
+                            ok("Rectangle")
+                    )
             ) {
                 call.respondText(
-                    """
+                        """
                     {
                         "a" : 10,
                         "b" : 25
@@ -251,18 +258,18 @@ internal fun run(port: Int, wait: Boolean = true): ApplicationEngine {
             get<petCustomSchemaParam>("pet by id".responds(ok<PetModel>())) {
             }
             get<requestInfo>(
-                responds(ok<Unit>()),
-                respondRequestDetails()
+                    responds(ok<Unit>()),
+                    respondRequestDetails()
             )
             get<withQueryParameter>(
-                responds(ok<Unit>())
-                    .parameter<QueryParameter>(),
-                respondRequestDetails()
+                    responds(ok<Unit>())
+                            .parameter<QueryParameter>(),
+                    respondRequestDetails()
             )
             get<withHeader>(
-                responds(ok<Unit>())
-                    .header<Header>(),
-                respondRequestDetails()
+                    responds(ok<Unit>())
+                            .header<Header>(),
+                    respondRequestDetails()
             )
         }
     }

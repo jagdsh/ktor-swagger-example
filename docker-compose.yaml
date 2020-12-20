@@ -1,18 +1,18 @@
 version: "3.8"
 services:
+  zap:
+    image: "owasp/zap2docker-weekly"
+    command: "zap-api-scan.py -t http://app:8091/apidocs/openapi.json -f openapi"
+    depends_on:
+      app:
+        condition: service_healthy 
   app:
     build: .
     ports:
       - "8091:8091"
     command: "java -jar ktor-sample-service-all.jar"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8091 && echo 'OK'"]
+      test: ["CMD", "curl", "-f", "http://localhost:8091/live"]
       interval: 5s
-      timeout: 2s
-      retries: 10
-  zap:
-    image: "owasp/zap2docker-weekly"
-    command: "zap-api-scan.py -t http://app:8091/apidocs/openapi.json -f openapi"
-    depends_on:
-      app:
-        condition: service_healthy
+      timeout: 3s
+      retries: 5

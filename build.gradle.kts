@@ -54,6 +54,9 @@ dependencies {
     implementation(ktor("ktor-gson"))
     implementation(group = "com.github.ajalt", name = "clikt", version = "1.3.0")
     implementation("de.nielsfalk.ktor:ktor-swagger:0.5.0")
+    implementation("net.logstash.log4j:jsonevent-layout:1.7")
+    implementation("org.slf4j:slf4j-log4j12:1.7.26")
+    implementation("org.slf4j:slf4j-api:1.7.26")
 
     /* Junit Platform */
     testImplementation(kotlin("test", property("kotlin.version") as String))
